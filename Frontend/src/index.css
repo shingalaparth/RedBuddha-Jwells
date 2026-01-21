@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Prata&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import "tailwindcss";
+
+a.active hr{
+    display: block;
+}
+
+*{
+    font-family:, Times, serif;
+}
+
+.prata-regular {
+  font-family: "Prata", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+html, body, #root {
+  height: 100%;
+}
+::-webkit-scrollbar{
+  display: none;
+}
+/* Chrome, Edge, Safari */
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
