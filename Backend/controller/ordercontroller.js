@@ -187,8 +187,20 @@ const userorders = async (req, res) => {
 const updatestatus = async (req, res) => {
   try {
     const { orderid, status } = req.body
-    await orderModel.findByIdAndUpdate(orderid, { status })
-    res.json({ success: true, message: "status updated" })
+
+    // Find the order first
+    const order = await orderModel.findById(orderid);
+
+    // Prepare update object
+    let updateData = { status };
+
+    // If status is 'Delivered' and payment type is 'COD', mark as paid
+    if (status === 'Delivered' && order.paymentmethod === 'COD') {
+      updateData.payment = true;
+    }
+
+    await orderModel.findByIdAndUpdate(orderid, updateData);
+    res.json({ success: true, message: "Status updated" + (updateData.payment ? " & Payment marked as Paid" : "") })
   }
   catch (error) {
     console.log(error);

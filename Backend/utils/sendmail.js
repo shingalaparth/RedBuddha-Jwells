@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-// Create a transporter using Ethereal test credentials.
+// Create a transporter using Gmail SMTP
 // For production, replace with your actual SMTP server details.
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -12,20 +12,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Send an email using async/await with error handling
+const sendmail = async (to, subject, text, html) => {
+  try {
+    const info = await transporter.sendMail({
+      from: 'RedBuddha Jwells <kapilkariya77@gmail.com>',
+      to,
+      subject,
+      text, // Plain-text version of the message
+      html, // HTML version of the message
+    });
 
-
-// Send an email using async/await
-const sendmail =async (to,subject,text,html) => {
-  const info = await transporter.sendMail({
-    from: 'SparkNest <kapilkariya77@gmail.com>',
-    to,
-    subject,
-    text, // Plain-text version of the message
-    html, // HTML version of the message
-    
-  });
-
-  console.log("Message sent:", info.messageId);
+    // Email sent successfully (silently)
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    // Email failed (silently) - don't crash the server
+    return { success: false, error: error.message };
+  }
 };
 
 export default sendmail

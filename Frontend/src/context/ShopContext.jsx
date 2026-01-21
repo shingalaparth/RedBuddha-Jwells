@@ -157,14 +157,11 @@ const ShopContextProvider = (props) => {
             if (response.data.success) {
                 setcartitems(response.data.cartData)
             }
-            else {
-                console.log(error.message)
-                toast.error(error.message)
-            }
+            // Silently ignore errors - don't show notifications for cart fetch failures
         }
         catch (error) {
-            console.log(error.message)
-            toast.error(error.message)
+            // Silently handle errors - this prevents "User not found" messages
+            console.log('Cart fetch failed (silently handled):', error.message)
         }
     }
 
