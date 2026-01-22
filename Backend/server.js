@@ -2,12 +2,15 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 dotenv.config({ override: true })
+
 import connectDB from './config/mongodb.js'
 import connectcloudinary from './config/cloudinary.js'
 import userrouter from './routes/userrouter.js'
 import productrouter from './routes/productroute.js'
 import cartrouter from './routes/cartroute.js'
 import orderRouter from './routes/orderroute.js'
+import reviewRouter from './routes/reviewroute.js'
+
 // App Config
 const app = express()
 connectDB();
@@ -32,6 +35,7 @@ app.use('/api/user', userrouter);
 app.use('/api/product', productrouter);
 app.use('/api/cart', cartrouter)
 app.use('/api/order', orderRouter)
+app.use('/api/review', reviewRouter)
 
 
 

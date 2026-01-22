@@ -47,8 +47,8 @@ const Navbar = () => {
 
   return (
     <div className={`sticky top-0 z-50 transition-all duration-300 ${scrolled
-        ? 'bg-white/98 backdrop-blur-md shadow-xl border-b border-[#8B1538]/10'
-        : 'bg-white/95 backdrop-blur-sm border-b border-gray-100'
+      ? 'bg-white/98 backdrop-blur-md shadow-xl border-b border-[#8B1538]/10'
+      : 'bg-white/95 backdrop-blur-sm border-b border-gray-100'
       }`}>
       <div className='max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center justify-between h-20'>
@@ -288,7 +288,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

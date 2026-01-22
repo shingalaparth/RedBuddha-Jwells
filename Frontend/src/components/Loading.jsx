@@ -74,7 +74,7 @@ const Loading = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes spin-slow {
           from {
             transform: rotateX(60deg) rotateZ(0deg);

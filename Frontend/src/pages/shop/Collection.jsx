@@ -1,15 +1,33 @@
 import React, { useContext, useEffect, useState } from 'react'
+import axios from 'axios'
 import { ShopContext } from '../../context/ShopContext'
 import Title from '../../components/Title';
 import ProductItem from '../../components/ProductItem';
 import Searchbar from '../../components/Searchbar';
 
 const Collection = () => {
-  const { products } = useContext(ShopContext);
+  const { products, backendURL } = useContext(ShopContext);
   const [visible, setvisible] = useState(false);
   const [filterproducts, setfilterproducts] = useState([]);
   const [sorttype, setsorttype] = useState("relavent");
+  const [productRatings, setProductRatings] = useState({});
   const { searchTerm, setSearchTerm, showsearch, setshowsearch, setcategory, category, setsubCategory, subCategory, togglecategory, togglesubCategory } = useContext(ShopContext);
+
+  // Fetch all product ratings
+  const fetchRatings = async () => {
+    try {
+      const response = await axios.get(`${backendURL}/api/review/ratings`);
+      if (response.data.success) {
+        setProductRatings(response.data.ratings);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRatings();
+  }, []);
 
   const applyfilters = () => {
     let copyproduct = products.slice();
@@ -271,6 +289,8 @@ const Collection = () => {
                       id={item._id}
                       price={item.price}
                       image={item.images[0]}
+                      rating={productRatings[item._id]?.averageRating || 0}
+                      reviewCount={productRatings[item._id]?.reviewCount || 0}
                     />
                   </div>
                 ))}
@@ -300,7 +320,7 @@ const Collection = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }

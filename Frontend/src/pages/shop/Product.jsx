@@ -1,26 +1,49 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import axios from 'axios'
 import { ShopContext } from '../../context/ShopContext';
 import Relatedproducts from '../../components/Relatedproducts';
+import ReviewSection from '../../components/ReviewSection';
 
 const Product = () => {
   const { productid } = useParams();
-  const { products, currency, addtocart } = useContext(ShopContext);
+  const { products, currency, addtocart, backendURL } = useContext(ShopContext);
   const [productdata, setproductdata] = useState(false)
   const [images, setimage] = useState('');
   const [size, setsize] = useState('');
   const [showImageModal, setShowImageModal] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [productRating, setProductRating] = useState({ averageRating: 0, reviewCount: 0 });
   const allsize = ['S', 'M', 'L', 'XL'];
   let isempty = true;
 
+  // Try to find product in context first
   const fetchdata = async () => {
-    products.map((item) => {
-      if (item._id === productid) {
-        setproductdata(item)
-        setimage(item.images[0])
-        return null;
+    if (products && products.length > 0) {
+      const foundProduct = products.find((item) => item._id === productid);
+      if (foundProduct) {
+        setproductdata(foundProduct);
+        setimage(foundProduct.images[0]);
+        return;
       }
-    })
+    }
+
+    // Fallback: fetch from API if not found in context
+    try {
+      const response = await axios.get(`${backendURL}/api/product/list`);
+      if (response.data.success) {
+        const foundProduct = response.data.products.find((item) => item._id === productid);
+        if (foundProduct) {
+          setproductdata(foundProduct);
+          setimage(foundProduct.images[0]);
+        } else {
+          setNotFound(true);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      setNotFound(true);
+    }
   }
 
   useEffect(() => {
@@ -29,6 +52,21 @@ const Product = () => {
 
   useEffect(() => {
     fetchdata();
+    // Fetch product rating
+    const fetchRating = async () => {
+      try {
+        const response = await axios.get(`${backendURL}/api/review/product/${productid}`);
+        if (response.data.success) {
+          setProductRating({
+            averageRating: response.data.stats.averageRating,
+            reviewCount: response.data.stats.totalReviews
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    if (productid) fetchRating();
   }, [productid, products])
 
   const getStockStatus = () => {
@@ -59,8 +97,8 @@ const Product = () => {
                     key={index}
                     onClick={() => setimage(item)}
                     className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 transition-all duration-200 ${item === images
-                        ? 'border-[#8B1538] shadow-md scale-105'
-                        : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
+                      ? 'border-[#8B1538] shadow-md scale-105'
+                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
                       }`}
                   >
                     <img
@@ -127,7 +165,7 @@ const Product = () => {
                   {[...Array(5)].map((_, i) => (
                     <svg
                       key={i}
-                      className={`w-5 h-5 ${i < 4 ? 'text-[#D4AF37]' : 'text-gray-300'}`}
+                      className={`w-5 h-5 ${i < Math.round(productRating.averageRating) ? 'text-[#D4AF37]' : 'text-gray-300'}`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -135,7 +173,11 @@ const Product = () => {
                     </svg>
                   ))}
                 </div>
-                <span className='text-sm text-gray-600 font-medium'>4.0 (112 reviews)</span>
+                <span className='text-sm text-gray-600 font-medium'>
+                  {productRating.averageRating > 0
+                    ? `${productRating.averageRating} (${productRating.reviewCount} reviews)`
+                    : 'No reviews yet'}
+                </span>
               </div>
             </div>
 
@@ -182,10 +224,10 @@ const Product = () => {
                       onClick={() => setsize(item)}
                       disabled={!available}
                       className={`relative py-3 px-5 rounded-xl font-semibold text-sm transition-all duration-200 ${item === size
-                          ? 'bg-black text-white shadow-lg scale-105'
-                          : available
-                            ? 'bg-white border-2 border-gray-200 text-gray-900 hover:border-gray-400 hover:shadow-md'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        ? 'bg-black text-white shadow-lg scale-105'
+                        : available
+                          ? 'bg-white border-2 border-gray-200 text-gray-900 hover:border-gray-400 hover:shadow-md'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                     >
                       {item}
@@ -252,6 +294,9 @@ const Product = () => {
           </div>
         </div>
 
+        {/* Reviews Section */}
+        <ReviewSection productId={productid} />
+
         {/* Related Products */}
         <div className='mt-16' onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <Relatedproducts category={productdata.category} subcategory={productdata.subcategory} />
@@ -280,6 +325,21 @@ const Product = () => {
           />
         </div>
       )}
+    </div>
+  ) : notFound ? (
+    <div className='flex flex-col items-center justify-center min-h-screen bg-gray-50'>
+      <div className='text-center p-8'>
+        <div className='w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center'>
+          <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className='text-2xl font-bold text-gray-900 mb-2'>Product Not Found</h2>
+        <p className='text-gray-500 mb-6'>This product may have been removed or is no longer available.</p>
+        <a href='/collection' className='px-6 py-3 bg-black text-white font-semibold rounded-xl hover:bg-gray-800 transition-all'>
+          Browse Collection
+        </a>
+      </div>
     </div>
   ) : (
     <div className='flex items-center justify-center min-h-screen'>
