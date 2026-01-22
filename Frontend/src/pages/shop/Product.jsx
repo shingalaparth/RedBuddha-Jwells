@@ -91,14 +91,15 @@ const Product = () => {
           <div className='lg:w-1/2 p-6 lg:p-8'>
             <div className='flex flex-col-reverse md:flex-row gap-4'>
               {/* Thumbnails */}
-              <div className='flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto md:max-h-[600px] scrollbar-thin scrollbar-thumb-gray-300'>
+              <div className='flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto md:max-h-[500px] pb-2 scrollbar-thin scrollbar-thumb-gray-300'>
                 {productdata.images.map((item, index) => (
                   <button
                     key={index}
                     onClick={() => setimage(item)}
-                    className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 transition-all duration-200 ${item === images
-                      ? 'border-[#8B1538] shadow-md scale-105'
-                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
+                    onMouseEnter={() => setimage(item)}
+                    className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${item === images
+                      ? 'border-[#8B1538] shadow-md scale-105 ring-2 ring-[#8B1538]/20'
+                      : 'border-gray-200 hover:border-[#D4AF37] opacity-80 hover:opacity-100'
                       }`}
                   >
                     <img
@@ -106,9 +107,20 @@ const Product = () => {
                       alt={`Product ${index + 1}`}
                       className='w-full h-full object-cover'
                     />
+                    {/* Image number badge */}
+                    <span className='absolute top-0.5 left-0.5 w-4 h-4 bg-black/50 text-white text-[10px] font-bold rounded flex items-center justify-center'>
+                      {index + 1}
+                    </span>
                   </button>
                 ))}
               </div>
+
+              {/* Image count indicator */}
+              {productdata.images.length > 1 && (
+                <div className='hidden md:block text-center mt-2'>
+                  <span className='text-xs text-gray-500'>{productdata.images.length} images</span>
+                </div>
+              )}
 
               {/* Main Image */}
               <div className='flex-1 relative group'>
@@ -299,7 +311,7 @@ const Product = () => {
 
         {/* Related Products */}
         <div className='mt-16' onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <Relatedproducts category={productdata.category} subcategory={productdata.subcategory} />
+          <Relatedproducts category={productdata.category} subcategory={productdata.subCategory} id={productdata._id} />
         </div>
       </div>
 

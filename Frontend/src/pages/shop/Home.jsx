@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import axios from 'axios'
 import { ShopContext } from '../../context/ShopContext'
 import Title from '../../components/Title'
 import ProductItem from '../../components/ProductItem'
@@ -229,12 +230,27 @@ const ShopByCategory = () => {
 }
 
 const LatestCollection = () => {
-  const { products } = useContext(ShopContext);
+  const { products, backendURL } = useContext(ShopContext);
   const [latestproduct, setlatestproduct] = useState([])
+  const [productRatings, setProductRatings] = useState({});
 
   useEffect(() => {
     setlatestproduct(products.slice(0, 8));
   }, [products])
+
+  useEffect(() => {
+    const fetchRatings = async () => {
+      try {
+        const response = await axios.get(`${backendURL}/api/review/ratings`);
+        if (response.data.success) {
+          setProductRatings(response.data.ratings);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchRatings();
+  }, []);
 
   return (
     <div className='py-24 bg-gradient-to-b from-white to-[#F4E4C1]/10 relative overflow-hidden'>
@@ -254,7 +270,14 @@ const LatestCollection = () => {
         <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6'>
           {latestproduct.map((item, index) => (
             <div key={index} className='animate-fadeIn' style={{ animationDelay: `${index * 50}ms` }}>
-              <ProductItem id={item._id} image={item.images[0]} name={item.name} price={item.price} />
+              <ProductItem
+                id={item._id}
+                image={item.images[0]}
+                name={item.name}
+                price={item.price}
+                rating={productRatings[item._id]?.averageRating || 0}
+                reviewCount={productRatings[item._id]?.reviewCount || 0}
+              />
             </div>
           ))}
         </div>
@@ -275,33 +298,98 @@ const LatestCollection = () => {
   )
 }
 
-const BestSeller = () => {
-  const { products } = useContext(ShopContext)
-  const [bestseller, setbestseller] = useState([]);
+const CustomerTestimonials = () => {
+  const { backendURL } = useContext(ShopContext);
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
-    const bestprod = products.filter(item => item.bestseller)
-    setbestseller(bestprod.slice(0, 4))
-  }, [products])
+    const fetchReviews = async () => {
+      try {
+        // Fetch stats which includes top products with reviews
+        const response = await axios.get(`${backendURL}/api/review/stats`);
+        if (response.data.success && response.data.stats.topProducts) {
+          setReviews(response.data.stats.topProducts.slice(0, 4));
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchReviews();
+  }, []);
+
+  // Static testimonials as fallback if no reviews
+  const staticTestimonials = [
+    { name: "Priya S.", text: "Absolutely stunning craftsmanship! The necklace exceeded my expectations.", rating: 5 },
+    { name: "Ananya M.", text: "Perfect for my wedding. Everyone complimented my jewelry!", rating: 5 },
+    { name: "Rhea K.", text: "Beautiful packaging and quick delivery. Will order again!", rating: 5 },
+    { name: "Kavita P.", text: "The quality is exceptional. Worth every penny!", rating: 5 }
+  ];
 
   return (
-    <div className='py-24 bg-white relative overflow-hidden'>
-      {/* Background Orb */}
+    <div className='py-24 bg-gradient-to-b from-white to-[#FDFBF7] relative overflow-hidden'>
+      {/* Background Decoration */}
       <div className='absolute top-20 right-0 w-80 h-80 bg-[#D4AF37]/5 rounded-full blur-3xl'></div>
+      <div className='absolute bottom-20 left-0 w-60 h-60 bg-[#8B1538]/5 rounded-full blur-3xl'></div>
 
       <div className='relative max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='text-center mb-16'>
-          <Title title1={"MOST"} title2={"LOVED"} />
+          <Title title1={"CUSTOMER"} title2={"LOVE"} />
           <p className='text-gray-600 text-lg mt-4 max-w-2xl mx-auto'>
-            Our most coveted pieces, chosen by you.
+            What our customers are saying about their RedBuddha experience
           </p>
         </div>
-        <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6'>
-          {bestseller.map((item, index) => (
-            <div key={index} className='animate-fadeIn' style={{ animationDelay: `${index * 50}ms` }}>
-              <ProductItem id={item._id} image={item.images[0]} name={item.name} price={item.price} />
+
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+          {(reviews.length > 0 ? reviews : staticTestimonials).map((item, index) => (
+            <div
+              key={index}
+              className='bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl hover:border-[#D4AF37]/30 transition-all duration-300 animate-fadeIn'
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              {/* Stars */}
+              <div className='flex gap-1 mb-4'>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <svg
+                    key={star}
+                    className={`w-5 h-5 ${star <= (item.avgRating || item.rating || 5) ? 'text-[#D4AF37]' : 'text-gray-300'}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+
+              {/* Quote */}
+              <p className='text-gray-600 text-sm mb-4 italic line-clamp-3'>
+                {item.text || `"Amazing quality jewelry from ${item.productName || 'RedBuddha'}. Highly recommended!"`}
+              </p>
+
+              {/* Customer/Product Info */}
+              <div className='flex items-center gap-3'>
+                <div className='w-10 h-10 rounded-full bg-gradient-to-br from-[#8B1538] to-[#D4AF37] flex items-center justify-center text-white font-bold text-sm'>
+                  {(item.name?.[0] || item.productName?.[0] || 'C').toUpperCase()}
+                </div>
+                <div>
+                  <p className='font-semibold text-gray-900 text-sm'>{item.name || item.productName || 'Happy Customer'}</p>
+                  <p className='text-xs text-gray-500'>{item.reviewCount ? `${item.reviewCount} reviews` : 'Verified Buyer'}</p>
+                </div>
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* CTA */}
+        <div className='text-center mt-12'>
+          <Link
+            to='/collection'
+            className='inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#8B1538] to-[#6B0F2A] text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300'
+          >
+            Shop Our Collection
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
         </div>
       </div>
     </div>
@@ -386,12 +474,11 @@ const Home = () => {
       <Hero />
       <ShopByCategory />
       <LatestCollection />
-      <Testimonial />
-      <BestSeller />
+      <CustomerTestimonials />
       <OurPolicy />
 
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

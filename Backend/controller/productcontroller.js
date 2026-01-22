@@ -10,8 +10,11 @@ const addproduct = async (req, res) => {
     const image2 = req.files.image2 && req.files.image2[0]
     const image3 = req.files.image3 && req.files.image3[0]
     const image4 = req.files.image4 && req.files.image4[0]
+    const image5 = req.files.image5 && req.files.image5[0]
+    const image6 = req.files.image6 && req.files.image6[0]
+    const image7 = req.files.image7 && req.files.image7[0]
 
-    const images = [image1, image2, image3, image4].filter((item) => { return item !== undefined })
+    const images = [image1, image2, image3, image4, image5, image6, image7].filter((item) => { return item !== undefined })
 
 
     console.log(name, description, price, category, subCategory, sizes, quant, bestseller)
